@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+*.egg
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+npm-debug.log*
+.npm/
+
+# Data & models
+data/
+*.faiss
+*_stats.json
+corpus/indexes/
+!corpus/indexes/.gitkeep
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp

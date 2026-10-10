@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexRisk — Contract Risk Review</title>
+  <meta name="description" content="A research assistant for automated contract review, clause anomaly detection, and risk assessment.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <!-- Minimal Loading Bar/State -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-box">
+      <div class="loading-header">
+        <span class="loading-title">Processing Document</span>
+        <span class="loading-status" id="loading-detail">Running analysis pipeline...</span>
+      </div>
+      <div class="progress-line">
+        <div class="progress-indeterminate"></div>
+      </div>
+      <p class="loading-note">Parsing clauses, validating summary faithfulness, and evaluating deviation.</p>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Top Nav -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <a href="/" class="brand-link">
+          <span class="brand-name">LexRisk</span>
+          <span class="brand-sep">/</span>
+          <span class="brand-sub">Review</span>
+        </a>
+      </div>
+      <nav class="nav-meta">
+        <span class="nav-item">Corpus: Pending Indexing (Phase 3)</span>
+        <span class="nav-divider"></span>
+        <span class="nav-item">DeBERTa-v3 Faithfulness</span>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="page-body">
+      <div class="hero-section">
+        <div class="section-label">Automated Contract Analysis</div>
+        <h1 class="page-title">Objective contract review grounded in corpus precedent.</h1>
+        <p class="page-lead">
+          LexRisk extracts legal clauses, generates plain-language explanations, and evaluates statistical deviation against reference standard practice.
+        </p>
+      </div>
+
+      <% if (error) { %>
+      <div class="banner banner-error" role="alert">
+        <span class="banner-badge">Error</span>
+        <span class="banner-text"><%= error %></span>
+      </div>
+      <% } %>
+
+      <!-- Upload Interface -->
+      <section class="upload-section">
+        <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+          <div 
+            id="drop-zone" 
+            class="drop-area"
+            ondragover="handleDragOver(event)" 
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+            onclick="document.getElementById('contract-file').click()"
+          >
+            <div class="drop-content">
+              <div class="drop-graphic">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <div class="drop-text-group">
+                <div class="drop-primary" id="drop-title">Select contract file or drag and drop here</div>
+                <div class="drop-secondary">Accepted formats: PDF or DOCX (max 20 MB)</div>
+              </div>
+            </div>
+          </div>
+
+          <input 
+            type="file" 
+            id="contract-file" 
+            name="contract" 
+            accept=".pdf,.docx,.doc,text/plain" 
+            style="display:none" 
+            onchange="handleFileSelect(event)"
+          >
+
+          <div id="file-selected" class="file-panel hidden">
+            <div class="file-info">
+              <span class="file-label">Selected file:</span>
+              <span id="file-name" class="file-name"></span>
+            </div>
+            <button type="button" onclick="clearFile()" class="btn-clear" aria-label="Remove file">Remove</button>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn btn-primary" disabled>
+              <span id="btn-text">Select a contract to review</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- System Architecture & Pipeline Notes -->
+      <section class="spec-section">
+        <h2 class="spec-heading">Evaluation Methodology</h2>
+        <div class="spec-grid">
+          <div class="spec-card">
+            <div class="spec-num">01</div>
+            <div class="spec-title">Structural Extraction</div>
+            <p class="spec-desc">Identifies clauses across 13 standard taxonomies (Indemnity, Liability Cap, IP, Termination, etc.) preserving exact spans.</p>
+          </div>
+          <div class="spec-card">
+            <div class="spec-num">02</div>
+            <div class="spec-title">Entailment Verification</div>
+            <p class="spec-desc">Summaries are parsed for Obligor, Trigger, and Consequence, verified via cross-encoder NLI against the source text.</p>
+          </div>
+          <div class="spec-card">
+            <div class="spec-num">03</div>
+            <div class="spec-title">Corpus Deviation</div>
+            <p class="spec-desc">Clauses are embedded with MPNet and compared only against their own clause-type distribution in CUAD/LEDGAR.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-left">
+        <span>LexRisk</span>
+        <span class="footer-bullet">•</span>
+        <span>Academic Research Prototype</span>
+      </div>
+      <div class="footer-right">
+        <span>FastAPI + Sentence-Transformers + Redis</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/js/upload.js"></script>
+</body>
+</html>

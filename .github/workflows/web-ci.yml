@@ -1,0 +1,29 @@
+name: Web CI
+
+on:
+  push:
+    paths:
+      - 'web/**'
+  pull_request:
+    paths:
+      - 'web/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./web
+        run: npm ci || npm install
+
+      - name: Build
+        working-directory: ./web
+        run: npm run build

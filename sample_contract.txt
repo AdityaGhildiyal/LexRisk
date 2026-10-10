@@ -1,0 +1,14 @@
+1. CONFIDENTIALITY AND NON-DISCLOSURE
+The Receiving Party agrees that all proprietary information disclosed by Disclosing Party shall remain strictly confidential. The Receiving Party shall not disclose, reproduce, or distribute any Confidential Information without prior written consent.
+
+2. INDEMNIFICATION
+The Receiving Party shall indemnify, defend, and hold harmless the Disclosing Party and its officers, directors, and employees against any and all losses, liabilities, claims, damages, and expenses (including reasonable attorneys fees) arising from any unauthorized disclosure or breach of this Agreement.
+
+3. LIMITATION OF LIABILITY
+In no event shall either party's aggregate liability arising out of or related to this Agreement exceed the sum of $10,000, regardless of the theory of liability.
+
+4. TERMINATION
+Either party may terminate this Agreement at any time with thirty (30) days prior written notice to the other party. Upon termination, all confidential materials must be returned or destroyed.
+
+5. GOVERNING LAW
+This Agreement shall be construed, interpreted, and governed by the laws of the State of Delaware, without regard to conflict of law principles.
