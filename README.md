@@ -4,129 +4,149 @@
 
 LexRisk is a contract-review assistant that takes an uploaded contract (PDF/DOCX) and returns a risk-annotated, plain-language report. It combines clause-level extraction via an LLM with a corpus-grounded semantic anomaly signal, so instead of just listing what's in a contract, it surfaces **which clauses are unusual** relative to how that clause type is normally written.
 
+## Key Features & Differentiators
+
+- **Layout & Section-Aware Operative Chunking**: Regex-driven boundary detection splits contracts cleanly by numbered clauses (`7.1`, `8.2`, `ARTICLE IV`) while discarding recurring headers, footers, and pagination noise.
+- **Single-Pass Structured Extraction**: Extracts entire verbatim provisions and structured summaries simultaneously without missing critical trailing qualifiers (e.g., unlimited liability, asymmetric non-competes).
+- **Local NLI Faithfulness Verification**: Evaluates summary entailment using `cross-encoder/nli-deberta-v3-small` with qualifier coverage checks (catching dropped terms like *"without limit"*, *"worldwide"*, *"sole discretion"*).
+- **Transparent Risk Scoring**: Weighted combination of empirical semantic deviation and clause-type criticality. If reference indexes are uncomputed, the system clearly marks them as such without hallucinating baseline metrics.
+- **Editorial Paper-Style UI & Formatted Export**: Minimalist, publication-grade reading experience with structured matrices and one-click `.txt` formatted audit reports.
+
 ## Architecture
 
 ```
-Browser → Express (:3000) → FastAPI (:8000) → Redis (:6379)
-                                            → FAISS Index (local)
-                                            → Gemini API (external)
+Browser (UI) ──> Express.js (:3000) ──> FastAPI (:8000) ──> Redis Cache (:6379)
+                                                        ──> Gemini Flash (REST API)
+                                                        ──> DeBERTa-v3 Cross-Encoder (Local CPU)
+                                                        ──> FAISS Partitioned Vector Index (Local)
 ```
 
 **Pipeline stages (per contract):**
-1. **Chunking** — Sentence-window chunker splits document into overlapping chunks
-2. **Extraction** — Gemini 1.5 Flash extracts typed clauses (JSON-constrained output)
-3. **Summarization** — Fixed-schema plain-language summary per clause (meaning / obligor / trigger / consequence)
-4. **Faithfulness check** — NLI model (DeBERTa-v3) verifies summaries aren't hallucinated
-5. **Embedding** — `all-mpnet-base-v2` encodes each clause
-6. **Deviation scoring** — FAISS query against per-clause-type reference index (CUAD + LEDGAR)
-7. **Risk scoring** — `risk = 0.6×deviation + 0.4×clause_type_weight` (interpretable weighted sum)
+1. **Header/Footer Stripping & Section Chunking** — Cleans page boundaries and partitions by operative decimal/article sections.
+2. **LLM Extraction & Summary (Single-Pass)** — Gemini Flash extracts exact clause spans and 4-field summaries (`meaning`, `obligor`, `trigger`, `consequence`).
+3. **NLI Entailment Check** — Cross-Encoder evaluates premise-hypothesis entailment and validates presence of high-stakes qualifiers.
+4. **Dense Vector Encoding** — `sentence-transformers/all-mpnet-base-v2` encodes operative text.
+5. **Corpus Deviation Scoring** — Queries partitioned FAISS indices (CUAD + LEDGAR) for k-NN distance.
+6. **Interpretable Risk Scoring** — Transparent weighted sum (`0.6×deviation + 0.4×type_weight`).
+7. **Interactive Audit View & Export** — Risk distribution spectrum, multi-tier filtering, and client-side ASCII `.txt` report downloads.
 
 ## Quick Start
 
 ### Prerequisites
 - Docker Desktop (running)
-- A Gemini API key (get one at [aistudio.google.com](https://aistudio.google.com))
+- A Gemini API key (obtainable at [aistudio.google.com](https://aistudio.google.com))
 
 ### 1. Set up environment
 
 ```bash
-# Backend
+# Backend environment configuration
 cp backend/.env.example backend/.env
-# Edit backend/.env and set your GEMINI_API_KEY
+# Open backend/.env and add: GEMINI_API_KEY=your_key_here
 
-# Web
+# Web environment configuration
 cp web/.env.example web/.env
 ```
 
-### 2. Start everything
+### 2. Start all services
 
 ```bash
 docker-compose up --build
 ```
 
-- **Web UI**: http://localhost:3000
-- **API docs**: http://localhost:8000/docs
-- **Health check**: http://localhost:8000/health
+- **Web UI**: [http://localhost:3000](http://localhost:3000)
+- **FastAPI OpenAPI Swagger**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Health check**: [http://localhost:8000/health](http://localhost:8000/health)
 
 ### 3. Build the reference corpus index (Phase 3)
 
-Once you have CUAD data downloaded:
+When building the offline empirical reference index with the CUAD / LEDGAR dataset:
 
 ```bash
-# Download CUAD dataset
-# https://www.atticusprojectai.org/cuad
-
 docker-compose run --rm backend python corpus/build_index.py \
   --cuad-path /data/cuad \
   --output /app/corpus/indexes
 ```
 
-## Development
+## Development & Local Testing
 
 ### Backend (FastAPI)
 
 ```bash
 cd backend
 pip install -r requirements.txt
-# Set env vars
-export GEMINI_API_KEY=your_key
-export REDIS_URL=redis://localhost:6379
+export GEMINI_API_KEY="your_api_key"
+export REDIS_URL="redis://localhost:6379"
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Web (Express)
+### Web (Express.js)
 
 ```bash
 cd web
 npm install
-export BACKEND_URL=http://localhost:8000
+export BACKEND_URL="http://localhost:8000"
 npm run dev
 ```
 
-### Running tests
+### End-to-End & Unit Tests
 
 ```bash
-# Backend
-docker-compose run --rm backend pytest tests/ -v
+# Run unit tests inside backend container
+docker exec lexrisk-backend-1 pytest tests/ -v
 
-# Or locally:
-cd backend && pytest tests/ -v
+# Run the end-to-end pipeline verification script
+python test_pipeline_e2e.py
 ```
 
-## Project Phases
+## Project Phases & Progress
 
 | Phase | Status | Description |
 |---|---|---|
-| 0 | ✅ | Repo scaffold, Docker, environment setup |
-| 1 | ✅ | Chunking + LLM extraction MVP |
-| 2 | ✅ | Summarization + NLI faithfulness checking |
-| 3 | ⏳ | Reference corpus (CUAD+LEDGAR) + FAISS index |
-| 4 | ✅ | Risk scoring + full integration + UI |
-| 5 | ⏳ | Expert labeling + Spearman's ρ correlation study |
-| 6 | ⏳ | Polish, stretch goals, paper, viva prep |
+| 0 | ✅ | Repository scaffold, Docker compose network, environment configuration |
+| 1 | ✅ | Numbered section chunking + LLM single-pass extraction MVP |
+| 2 | ✅ | Structured 4-field summarization + DeBERTa NLI faithfulness verification |
+| 3 | ⏳ | Reference corpus offline ingestion (CUAD v1.0 + LEDGAR) & FAISS vector partitioning |
+| 4 | ✅ | Interpretable risk scoring engine, editorial UI, and text audit exporter |
+| 5 | ⏳ | Expert agreement study & Spearman's rank correlation ($\rho$) validation |
+| 6 | ⏳ | Paper preparation, defense presentations & documentation |
 
-## Clause Types Recognized
+## Clause Taxonomy Recognized
 
-`indemnity` · `limitation_of_liability` · `ip_assignment` · `termination` · `governing_law` · `dispute_resolution` · `confidentiality` · `payment` · `warranty` · `force_majeure` · `notice` · `boilerplate` · `other`
+- `indemnity` (Hold harmless, defense, liability assumption)
+- `limitation_of_liability` (Consequential damages waiver, aggregate caps)
+- `ip_assignment` (Ownership, pre-existing IP, work product transfer)
+- `non_compete` (Commercial restrictions, duration/geographic scope)
+- `non_solicit` (Employee / client non-solicitation)
+- `liquidated_damages` (Daily delay fees, pre-agreed penalties)
+- `termination` (Termination for convenience, default, breach)
+- `term_renewal` (Auto-renewal periods, notice windows)
+- `assignment` (Third-party transfer, change of control)
+- `confidentiality` (Non-disclosure scope, standard exceptions)
+- `governing_law` (Jurisdiction, choice of law)
+- `dispute_resolution` (Arbitration, mediation, jury trial waiver)
+- `warranty` (Representations, warranties, disclaimers)
+- `payment` (Invoicing, late interest, payment milestones)
+- `force_majeure` (Excused non-performance events)
+- `notice` & `boilerplate` (Addresses, severability, entire agreement)
 
-## Risk Scoring
+## Interpretable Risk Formulation
 
-Risk score is an **interpretable weighted sum**:
+The risk score is formulated as an explicit, auditable linear combination:
 
-```
-risk_score = 0.6 × normalized_deviation + 0.4 × clause_type_weight
-```
+$$\text{Risk Score} = 0.6 \cdot \text{Normalized Deviation} + 0.4 \cdot \text{Clause Type Weight}$$
 
-- **deviation score**: how far the clause embedding is from the reference corpus centroid for that clause type (FAISS k-NN, z-score normalized)
-- **clause_type_weight**: static rubric (indemnity=0.9, limitation_of_liability=0.85, ... notice=0.3)
+- **Empirical Deviation**: Derived from $k$-NN distance against the partitioned reference corpus. Uncomputed deviation is explicitly surfaced as *"Uncomputed (Phase 3)"* to avoid synthetic metrics.
+- **Risk Tiers**:
+  - **Critical**: $\ge 80\%$
+  - **High**: $65\% - 79\%$
+  - **Moderate**: $35\% - 64\%$
+  - **Low**: $< 35\%$
 
-No black-box model — every risk flag traces back to these two values.
+## Evaluation Suite (Phase 5)
 
-## Evaluation Metrics (Phase 5)
-
-- **Extraction F1** vs. CUAD held-out labels
-- **Faithfulness pass rate** — % of summaries passing NLI entailment check
-- **Spearman's ρ** between system risk ranking and expert-labeled "unusual/not-unusual" judgments (headline metric)
+- **Extraction Precision & F1**: Evaluated against annotated CUAD evaluation partitions.
+- **Faithfulness Pass Rate**: Evaluated with contradiction/entailment cross-encoders and qualifier coverage checks.
+- **Spearman's Rank Correlation ($\rho$)**: Comparing computed risk ranking with expert legal review annotations.
 
 ## Repository Structure
 
