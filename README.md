@@ -107,8 +107,8 @@ python test_pipeline_e2e.py
 | 2 | ✅ | Structured 4-field summarization + DeBERTa NLI faithfulness verification |
 | 3 | ✅ | Reference corpus ingestion (CUAD v1.0 + LEDGAR) & 16-partition FAISS vector index |
 | 4 | ✅ | Interpretable risk scoring engine, editorial UI, and text audit exporter |
-| 5 | ✅ | Evaluation harness: Extraction F1, NLI faithfulness pass rate, Spearman's rank correlation ($\rho$) |
-| 6 | ⏳ | Paper preparation, defense presentations & documentation |
+| 5 | ✅ | Evaluation study: Spearman's rank correlation ($\rho=0.3395, p=0.017$) & NLI pass rate (83.7%) |
+| 6 | ✅ | Academic thesis report, viva defense guide & presentation slide deck |
 
 ## Clause Taxonomy Recognized
 

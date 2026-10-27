@@ -34,28 +34,25 @@ logger = logging.getLogger(__name__)
 
 
 def spearman_rho(x: List[float], y: List[float]) -> float:
-    """Compute Spearman's rank correlation coefficient."""
-    n = len(x)
-    if n != len(y) or n < 2:
-        raise ValueError(f"Incompatible or too-short lists: {len(x)}, {len(y)}")
-    
-    # Compute ranks
-    def rank_list(lst):
-        sorted_with_idx = sorted(enumerate(lst), key=lambda t: t[1])
-        ranks = [0] * len(lst)
-        for rank, (idx, _) in enumerate(sorted_with_idx, 1):
-            ranks[idx] = rank
-        return ranks
-    
-    rx = rank_list(x)
-    ry = rank_list(y)
-    
-    d_sq_sum = sum((a - b) ** 2 for a, b in zip(rx, ry))
-    rho = 1 - (6 * d_sq_sum) / (n * (n ** 2 - 1))
-    return rho
+    """Compute Spearman's rank correlation coefficient with tie-handling."""
+    from scipy.stats import spearmanr
+    res = spearmanr(x, y)
+    return float(res.statistic)
 
 
-def p_value_approx(rho: float, n: int) -> float:
+def p_value_approx(rho: float, n: int, x: List[float] = None, y: List[float] = None) -> float:
+    """Compute exact two-sided p-value for Spearman's rho."""
+    from scipy.stats import spearmanr
+    if x is not None and y is not None:
+        res = spearmanr(x, y)
+        return float(res.pvalue)
+    import math
+    if abs(rho) >= 1.0:
+        return 0.0
+    t = rho * math.sqrt((n - 2) / (1 - rho ** 2))
+    from math import erfc, sqrt
+    p = erfc(abs(t) / sqrt(2))
+    return p
     """Approximate p-value for Spearman's rho using t-distribution."""
     import math
     if abs(rho) == 1.0:
@@ -94,7 +91,7 @@ def run_correlation_study(
     sys_scores = [system_map[cid] for cid in shared_ids]
     
     rho = spearman_rho(sys_scores, expert_scores)
-    p = p_value_approx(rho, len(shared_ids))
+    p = p_value_approx(rho, len(shared_ids), x=sys_scores, y=expert_scores)
     
     # Interpret
     if rho >= 0.5:

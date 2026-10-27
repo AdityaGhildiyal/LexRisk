@@ -1,0 +1,9 @@
+{
+  "total_pairs": 49,
+  "pass_count": 41,
+  "pass_rate": 0.8367346938775511,
+  "mean_score": 0.8492187502084487,
+  "min_score": 0.00012001150025753304,
+  "max_score": 0.9982355833053589,
+  "threshold": 0.5
+}

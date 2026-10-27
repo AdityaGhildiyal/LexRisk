@@ -1,0 +1,9 @@
+{
+  "n_clauses": 49,
+  "n_expert_labels": 49,
+  "n_system_scored": 49,
+  "spearman_rho": 0.3395,
+  "p_value_approx": 0.017,
+  "significant_at_0_05": true,
+  "interpretation": "Moderate positive correlation \u2014 system ranking partially aligns with expert judgment"
+}
