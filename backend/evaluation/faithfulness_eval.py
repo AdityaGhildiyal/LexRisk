@@ -36,15 +36,15 @@ async def evaluate_faithfulness(pairs: List[Dict], threshold: float = 0.5) -> Di
     scores = []
     
     for i, pair in enumerate(pairs):
-        score = await checker.check(
+        entailment_prob, is_flagged = await checker.check(
             premise=pair["clause_text"],
             hypothesis=pair["summary_text"]
         )
-        scores.append(score)
+        scores.append(entailment_prob)
+        if not is_flagged:
+            passes.append(entailment_prob)
         if (i + 1) % 10 == 0:
             logger.info(f"Processed {i+1}/{len(pairs)} pairs")
-    
-    passes = [s for s in scores if s >= threshold]
     
     return {
         "total_pairs": len(scores),

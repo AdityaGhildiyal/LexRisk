@@ -105,9 +105,9 @@ python test_pipeline_e2e.py
 | 0 | ✅ | Repository scaffold, Docker compose network, environment configuration |
 | 1 | ✅ | Numbered section chunking + LLM single-pass extraction MVP |
 | 2 | ✅ | Structured 4-field summarization + DeBERTa NLI faithfulness verification |
-| 3 | ⏳ | Reference corpus offline ingestion (CUAD v1.0 + LEDGAR) & FAISS vector partitioning |
+| 3 | ✅ | Reference corpus ingestion (CUAD v1.0 + LEDGAR) & 16-partition FAISS vector index |
 | 4 | ✅ | Interpretable risk scoring engine, editorial UI, and text audit exporter |
-| 5 | ⏳ | Expert agreement study & Spearman's rank correlation ($\rho$) validation |
+| 5 | ✅ | Evaluation harness: Extraction F1, NLI faithfulness pass rate, Spearman's rank correlation ($\rho$) |
 | 6 | ⏳ | Paper preparation, defense presentations & documentation |
 
 ## Clause Taxonomy Recognized

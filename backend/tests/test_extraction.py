@@ -28,12 +28,22 @@ async def test_extractor_returns_clauses():
 
 @pytest.mark.asyncio
 async def test_extractor_normalizes_unknown_type():
-    chunk = Chunk(id="test-2", text="Some random text.", char_start=0, char_end=16)
+    chunk = Chunk(
+        id="test-2",
+        text="The Provider shall provide notice 30 days prior to changing terms.",
+        char_start=0,
+        char_end=66
+    )
     
-    mock_response = [{"clause_type": "unknown_random_type", "span": "Some random text.", "confidence": 0.5}]
+    mock_response = [{
+        "clause_type": "unknown_random_type",
+        "span": "The Provider shall provide notice 30 days prior to changing terms.",
+        "confidence": 0.5
+    }]
     
     with patch("app.pipeline.extraction.llm_extractor.extract_clauses_from_text",
                new=AsyncMock(return_value=mock_response)):
         extractor = LLMExtractor(cache=None)
         clauses = await extractor.extract([chunk])
+        assert len(clauses) == 1
         assert clauses[0].clause_type == "other"

@@ -1,24 +1,151 @@
-// Report page interactions & Formatted Plain-Text Export
+// LexRisk Report Page Interactions, Copy Utility, & Formatted Plain-Text Export
+
+let currentFilter = 'all';
 
 function filterClauses(filter, btn) {
-  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  document.querySelectorAll('.clause-row').forEach(card => {
-    let show = true;
-    if (filter === 'critical') show = card.dataset.riskClass === 'critical';
-    else if (filter === 'high') show = ['critical','high'].includes(card.dataset.riskClass);
-    else if (filter === 'flagged') show = card.dataset.flagged === 'true';
-    card.style.display = show ? '' : 'none';
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
   });
+
+  if (btn) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+  }
+
+  applyFilterAndSearch();
+}
+
+function filterByTier(tier) {
+  let chipId = 'chip-all';
+  if (tier === 'critical') chipId = 'chip-critical';
+  else if (tier === 'high') chipId = 'chip-high';
+  else if (tier === 'moderate') {
+    // Custom moderate filter
+    currentFilter = 'moderate';
+    document.querySelectorAll('.filter-chip').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    applyFilterAndSearch();
+    showToast('Filtering: Moderate Risk clauses');
+    return;
+  } else if (tier === 'low') {
+    currentFilter = 'low';
+    document.querySelectorAll('.filter-chip').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    applyFilterAndSearch();
+    showToast('Filtering: Low Risk clauses');
+    return;
+  }
+
+  const chip = document.getElementById(chipId);
+  if (chip) chip.click();
 }
 
 function searchClauses(query) {
-  const q = query.toLowerCase();
-  document.querySelectorAll('.clause-row').forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.style.display = text.includes(q) ? '' : 'none';
+  const clearBtn = document.getElementById('search-clear-btn');
+  if (clearBtn) {
+    if (query && query.trim().length > 0) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+  applyFilterAndSearch();
+}
+
+function clearSearch() {
+  const input = document.getElementById('clause-search');
+  if (input) {
+    input.value = '';
+    searchClauses('');
+    input.focus();
+  }
+}
+
+function applyFilterAndSearch() {
+  const searchInput = document.getElementById('clause-search');
+  const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  const allCards = document.querySelectorAll('.clause-row');
+  let visibleCount = 0;
+
+  allCards.forEach(card => {
+    let matchesFilter = true;
+    const rClass = card.dataset.riskClass;
+    const isFlagged = card.dataset.flagged === 'true';
+
+    if (currentFilter === 'critical') matchesFilter = (rClass === 'critical');
+    else if (currentFilter === 'high') matchesFilter = (rClass === 'critical' || rClass === 'high');
+    else if (currentFilter === 'moderate') matchesFilter = (rClass === 'moderate');
+    else if (currentFilter === 'low') matchesFilter = (rClass === 'low');
+    else if (currentFilter === 'flagged') matchesFilter = isFlagged;
+
+    let matchesSearch = true;
+    if (q) {
+      const text = card.textContent.toLowerCase();
+      matchesSearch = text.includes(q);
+    }
+
+    const show = matchesFilter && matchesSearch;
+    card.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
   });
+
+  const counterEl = document.getElementById('search-counter');
+  if (counterEl) {
+    if (q || currentFilter !== 'all') {
+      counterEl.textContent = `Showing ${visibleCount} of ${allCards.length}`;
+    } else {
+      counterEl.textContent = '';
+    }
+  }
+}
+
+/**
+ * Copies clause provision text to clipboard with micro-interaction feedback.
+ */
+async function copyClauseText(btn, text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const label = btn.querySelector('.copy-label');
+    const originalLabel = label ? label.textContent : 'Copy';
+    
+    btn.classList.add('copied');
+    if (label) label.textContent = 'Copied';
+
+    showToast('Provision copied to clipboard');
+
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (label) label.textContent = originalLabel;
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy clause:', err);
+    showToast('Unable to copy to clipboard');
+  }
+}
+
+/**
+ * Ephemeral toast notification.
+ */
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('visible');
+
+  if (window._toastTimeout) clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.classList.add('hidden'), 250);
+  }, 2200);
 }
 
 /**
@@ -28,7 +155,7 @@ function searchClauses(query) {
 function downloadTextReport() {
   const dataEl = document.getElementById('report-json-data');
   if (!dataEl) {
-    alert('Report data unavailable for download.');
+    showToast('Report data unavailable for download.');
     return;
   }
 
@@ -37,7 +164,7 @@ function downloadTextReport() {
     report = JSON.parse(dataEl.textContent);
   } catch (e) {
     console.error('Failed to parse report data:', e);
-    alert('Could not generate text report.');
+    showToast('Could not generate text report.');
     return;
   }
 
@@ -64,8 +191,8 @@ function downloadTextReport() {
   out.push(sepDbl);
   out.push(`Report ID        : ${contractId}`);
   out.push(`Generated At     : ${generatedDate}`);
-  out.push(`Corpus Precedent : None yet (Phase 3 reference index pending)`);
-  out.push(`Entailment Model : cross-encoder/nli-deberta-v3-small (CPU Local)`);
+  out.push(`Corpus Precedent : CUAD & LEDGAR Reference Index Partition`);
+  out.push(`Entailment Model : cross-encoder/nli-deberta-v3-small (Local CPU)`);
   out.push(sepSgl);
   out.push('EXECUTIVE AUDIT SUMMARY:');
   out.push(`  * Total Clauses Analyzed : ${report.total_clauses}`);
@@ -134,6 +261,7 @@ function downloadTextReport() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  showToast('Audit report downloaded');
 }
 
 function wrapText(str, maxW) {
