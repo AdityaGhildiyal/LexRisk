@@ -1,8 +1,8 @@
 # LexRisk
 
-> **AI-powered contract risk analysis** — B.Tech Final Year Project (CSE, 2023–2027)
+> **AI-Powered Legal Contract Review & Interpretable Risk Assessment Platform**
 
-LexRisk is a contract-review assistant that takes an uploaded contract (PDF/DOCX) and returns a risk-annotated, plain-language report. It combines clause-level extraction via an LLM with a corpus-grounded semantic anomaly signal, so instead of just listing what's in a contract, it surfaces **which clauses are unusual** relative to how that clause type is normally written.
+LexRisk is an end-to-end contract review and intelligence assistant that takes an uploaded contract (PDF/DOCX) and returns an auditable, plain-language risk report. It combines layout-aware clause extraction with a corpus-grounded semantic anomaly signal, surfacing **which clauses are unusually aggressive or one-sided** relative to empirical legal precedent (CUAD & LEDGAR).
 
 ## Key Features & Differentiators
 
@@ -107,8 +107,8 @@ python test_pipeline_e2e.py
 | 2 | ✅ | Structured 4-field summarization + DeBERTa NLI faithfulness verification |
 | 3 | ✅ | Reference corpus ingestion (CUAD v1.0 + LEDGAR) & 16-partition FAISS vector index |
 | 4 | ✅ | Interpretable risk scoring engine, editorial UI, and text audit exporter |
-| 5 | ✅ | Evaluation study: Spearman's rank correlation ($\rho=0.3395, p=0.017$) & NLI pass rate (83.7%) |
-| 6 | ✅ | Academic thesis report, viva defense guide & presentation slide deck |
+| 5 | ✅ | Empirical benchmark: Spearman's rank correlation ($\rho=0.3395, p=0.017$) & NLI pass rate (83.7%) |
+| 6 | ✅ | Technical whitepaper, architecture documentation & evaluation presentation deck |
 
 ## Clause Taxonomy Recognized
 
@@ -185,4 +185,4 @@ lexrisk/
 
 ## License
 
-Academic project — not for production use.
+MIT License — see LICENSE for details. Personal project by Aditya Ghildiyal.

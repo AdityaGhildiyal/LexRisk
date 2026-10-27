@@ -1,16 +1,14 @@
-# LexRisk: Academic Project Thesis & Technical Defense Report
+# LexRisk: System Technical Whitepaper & Architectural Report
 
 **Project Title:** LexRisk: Automated Legal Contract Review & Interpretable Risk Assessment via Corpus-Grounded Semantic Anomaly Detection and NLI Entailment Verification  
-**Author:** Aditya Ghildiyal  
-**Degree:** Bachelor of Technology in Computer Science and Engineering  
-**Academic Session:** 2023–2027  
+**Author & Developer:** Aditya Ghildiyal  
 **GitHub Repository:** [https://github.com/AdityaGhildiyal/LexRisk](https://github.com/AdityaGhildiyal/LexRisk)  
 
 ---
 
 ## Abstract
 
-Automated contract review has historically oscillated between rigid, regex-based keyword extractors and unconstrained generative large language models (LLMs) prone to severe factual hallucinations and arbitrary risk labeling. This dissertation introduces **LexRisk**, an end-to-end legal intelligence platform that balances zero-shot generative flexibility with empirical corpus grounding. 
+Automated contract review has historically oscillated between rigid, regex-based keyword extractors and unconstrained generative large language models (LLMs) prone to severe factual hallucinations and arbitrary risk labeling. This whitepaper introduces **LexRisk**, an end-to-end legal intelligence platform that balances zero-shot generative flexibility with empirical corpus grounding. 
 
 LexRisk introduces:
 1. A layout-aware numbered-section parser that eliminates operative boundary cuts and filters cross-page pagination noise;
@@ -112,9 +110,9 @@ $$z = \frac{d_k - \mu}{\sigma}, \quad \text{Deviation} = \frac{1}{1 + e^{-z}}$$
 
 ---
 
-## 4. Viva Voce & Defense Presentation Guide (Phase 6)
+## 4. Technical FAQ & Architectural Decisions
 
-### Expected Defense Questions & Model Answers
+### Key Architectural Decisions & Rationales
 
 **Q1: Why did you use an interpretable weighted linear formula rather than an end-to-end deep learning classifier for the final risk score?**
 > *Answer:* In legal risk compliance, black-box neural networks cannot be audited. If a company is sued or a client refuses a clause, an auditor must see precisely how the risk score was computed. In LexRisk, every score decomposes directly into:

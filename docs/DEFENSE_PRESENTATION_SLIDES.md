@@ -1,10 +1,9 @@
-# LexRisk: Final Defense Presentation Slides Outline
+# LexRisk: System Overview & Architecture Presentation Slides
 
 ## Slide 1: Title Slide
 - **Project Title:** LexRisk: Automated Legal Contract Review & Interpretable Risk Assessment
-- **Domain:** Natural Language Processing (NLP) / LegalTech
-- **Student Name:** Aditya Ghildiyal
-- **Guide / Department:** Department of Computer Science & Engineering
+- **Domain:** Natural Language Processing (NLP) / LegalTech / Applied AI
+- **Author & Developer:** Aditya Ghildiyal
 - **Live Repository:** `https://github.com/AdityaGhildiyal/LexRisk`
 
 ---
